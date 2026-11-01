@@ -10,6 +10,9 @@ dependencies = [
     "duckdb>=1.1",
 ]
 
+[project.scripts]
+shardsim = "shardsim.cli:main"
+
 [dependency-groups]
 dev = ["pytest>=8"]
 
