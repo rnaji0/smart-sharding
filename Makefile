@@ -4,11 +4,18 @@ COMPOSE   := docker compose --project-directory $(CITUS_DIR) -f $(CITUS_DIR)/doc
 PROFILES  ?=
 PROFILE_FLAGS := $(foreach p,$(PROFILES),--profile $(p))
 
+SIM      := cd sim && uv run shardsim
+SCALE    ?= small
+LAYOUT   ?= tenant
+SCENARIO ?= steady
+RUN      ?= latest
+ARGS     ?=
+
 .DEFAULT_GOAL := help
-.PHONY: help build up init down reset psql smoke status logs
+.PHONY: help build up init down reset psql smoke status logs sim-setup sim-layout sim-run sim-report sim-scenarios sim-test sim-test-cluster
 
 help: ## List targets
-	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-8s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 build: ## Build the arm64/amd64 Citus image from source
 	$(COMPOSE) build
@@ -39,3 +46,24 @@ status: ## Nodes, shard counts and sizes per node
 
 logs: ## Tail cluster logs
 	$(COMPOSE) $(PROFILE_FLAGS) logs -f --tail=100
+
+sim-setup: ## Schema + layout + data (SCALE=tiny|small|medium LAYOUT=tenant|naive|unsharded)
+	$(SIM) setup --scale $(SCALE) --layout $(LAYOUT)
+
+sim-layout: ## Re-shard loaded data (LAYOUT=...)
+	$(SIM) layout apply $(LAYOUT)
+
+sim-run: ## Run a scenario (SCENARIO=steady ARGS="--compress 1440")
+	$(SIM) run $(SCENARIO) $(ARGS)
+
+sim-report: ## Report on a run (RUN=latest|<run-id>)
+	$(SIM) report $(RUN)
+
+sim-scenarios: ## List bundled scenarios
+	$(SIM) scenarios
+
+sim-test: ## Simulator unit tests
+	cd sim && uv run pytest -q -m "not cluster"
+
+sim-test-cluster: ## Simulator end-to-end tests against the running cluster (reloads tiny data)
+	cd sim && uv run pytest -q -m cluster
