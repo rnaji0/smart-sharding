@@ -1,0 +1,16 @@
+name: hot_sku
+description: One product row of the largest retail tenant takes 30% of inventory traffic. Sharding cannot fix it; detect and recommend.
+duration: 1d
+compress: 144
+base_rate: 200
+diurnal: 0.3
+effects:
+  - label: hot_sku
+    kind: hot_key
+    scope: {vertical: retail, ranks: [1, 50]}
+    txns: [update_inventory, place_order, browse_product]
+    share: 0.3
+    start: 8h
+    end: 16h
+    ramp_in: 30m
+    ramp_out: 30m

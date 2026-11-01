@@ -1,0 +1,13 @@
+name: mix_drift
+description: Workload drifts from OLTP toward analytics over two sim days. Revisit reference tables and colocation.
+duration: 3d
+compress: 144
+base_rate: 200
+diurnal: 0.3
+effects:
+  - label: analytics_drift
+    kind: mix
+    weights: {platform_report: 20, tenant_dashboard: 5, customer_by_email: 3}
+    start: 12h
+    end: 3d
+    ramp_in: 2d

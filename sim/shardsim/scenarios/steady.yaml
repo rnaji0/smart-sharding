@@ -1,0 +1,6 @@
+name: steady
+description: Constant base load with a daily cycle. The controller should do nothing.
+duration: 1d
+compress: 144        # 1 sim day = 10 wall minutes
+base_rate: 200
+diurnal: 0.3

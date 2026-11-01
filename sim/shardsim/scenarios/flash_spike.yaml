@@ -1,0 +1,15 @@
+name: flash_spike
+description: Five random top-50 tenants spike 8x for 10 sim-minutes. Ideal response is cheap levers only, no data movement.
+duration: 6h
+compress: 12         # 1 sim hour = 5 wall minutes
+base_rate: 200
+diurnal: 0.1
+effects:
+  - label: flash
+    kind: load
+    scope: {ranks: [1, 50], random: 5}
+    multiplier: 8
+    start: 3h
+    end: 3h10m
+    ramp_in: 30s
+    ramp_out: 2m
