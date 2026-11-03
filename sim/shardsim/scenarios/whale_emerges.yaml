@@ -1,0 +1,14 @@
+name: whale_emerges
+description: A mid-size tenant (rank 30) grows 40x over three sim days into the largest tenant and stays there. Ideal response is isolate, then move.
+duration: 4d
+compress: 144
+base_rate: 200
+diurnal: 0.3
+effects:
+  - label: whale_growth
+    kind: load
+    scope: {rank: 30}
+    multiplier: 40
+    start: 12h
+    end: 4d
+    ramp_in: 3d

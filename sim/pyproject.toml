@@ -1,0 +1,28 @@
+[project]
+name = "shardsim"
+version = "0.1.0"
+description = "Workload engine and simulator for the smart-sharding Citus cluster"
+requires-python = ">=3.12"
+dependencies = [
+    "psycopg[binary,pool]>=3.2",
+    "numpy>=2.0",
+    "pyyaml>=6.0",
+    "duckdb>=1.1",
+]
+
+[project.scripts]
+shardsim = "shardsim.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["shardsim"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["cluster: needs the local Citus cluster (make up)"]
