@@ -1,0 +1,84 @@
+name: smart-sharding
+
+x-node: &node
+  image: smart-sharding/citus:14.2-pg18
+  pull_policy: never
+  environment:
+    POSTGRES_HOST_AUTH_METHOD: trust
+  shm_size: 512m
+  healthcheck:
+    test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres", "-q"]
+    interval: 2s
+    timeout: 3s
+    retries: 30
+  cpus: 1.5
+  mem_limit: 1536m
+  restart: unless-stopped
+
+services:
+  coordinator:
+    <<: *node
+    build:
+      context: .
+    pull_policy: build
+    hostname: coordinator
+    ports:
+      - "${CITUS_PORT:-5432}:5432"
+    cpus: 2
+    volumes:
+      - coordinator:/var/lib/postgresql
+      - ./postgresql.citus.conf:/etc/postgresql/postgresql.citus.conf:ro
+
+  worker-1:
+    <<: *node
+    hostname: worker-1
+    volumes:
+      - worker-1:/var/lib/postgresql
+      - ./postgresql.citus.conf:/etc/postgresql/postgresql.citus.conf:ro
+
+  worker-2:
+    <<: *node
+    hostname: worker-2
+    volumes:
+      - worker-2:/var/lib/postgresql
+      - ./postgresql.citus.conf:/etc/postgresql/postgresql.citus.conf:ro
+
+  worker-3:
+    <<: *node
+    hostname: worker-3
+    volumes:
+      - worker-3:/var/lib/postgresql
+      - ./postgresql.citus.conf:/etc/postgresql/postgresql.citus.conf:ro
+
+  # Staged capacity: `make up PROFILES=scale`, then `make add-worker NODE=worker-4`.
+  worker-4:
+    <<: *node
+    hostname: worker-4
+    profiles: ["scale"]
+    volumes:
+      - worker-4:/var/lib/postgresql
+      - ./postgresql.citus.conf:/etc/postgresql/postgresql.citus.conf:ro
+
+  # Hot standby of worker-1, registered as a Citus secondary for read routing.
+  worker-1-replica:
+    <<: *node
+    hostname: worker-1-replica
+    profiles: ["replica"]
+    user: postgres
+    environment:
+      PRIMARY_HOST: worker-1
+    entrypoint: ["/usr/local/bin/replica-entrypoint.sh"]
+    depends_on:
+      worker-1:
+        condition: service_healthy
+    volumes:
+      - worker-1-replica:/var/lib/postgresql
+      - ./postgresql.citus.conf:/etc/postgresql/postgresql.citus.conf:ro
+
+volumes:
+  coordinator:
+  worker-1:
+  worker-2:
+  worker-3:
+  worker-4:
+  worker-1-replica:
