@@ -1,0 +1,13 @@
+name: onboarding_wave
+description: 300 new mid-size tenants sign up over one sim day. Place them well.
+duration: 2d
+compress: 144
+base_rate: 200
+diurnal: 0.3
+effects:
+  - label: onboarding
+    kind: onboard
+    count: 300
+    weight_rank: 200
+    start: 12h
+    end: 1.5d

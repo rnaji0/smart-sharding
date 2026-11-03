@@ -1,0 +1,22 @@
+name: black_friday
+description: Retail tenants ramp 5x into a 24h peak, then decay. Ideal response is pre-position, freeze, revert.
+duration: 6d
+compress: 144
+base_rate: 150
+diurnal: 0.35
+effects:
+  - label: black_friday
+    kind: load
+    scope: {vertical: retail}
+    multiplier: 5
+    start: 2.5d
+    end: 5d
+    ramp_in: 12h
+    ramp_out: 1d
+  - label: black_friday_checkout
+    kind: mix
+    weights: {place_order: 2.5, update_inventory: 1.5}
+    start: 2.5d
+    end: 5d
+    ramp_in: 12h
+    ramp_out: 1d
