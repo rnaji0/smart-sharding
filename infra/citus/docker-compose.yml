@@ -19,7 +19,8 @@ services:
   coordinator:
     <<: *node
     build:
-      context: .
+      context: ../..
+      dockerfile: infra/citus/Dockerfile
     pull_policy: build
     hostname: coordinator
     ports:
