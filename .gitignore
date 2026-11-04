@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 runs/
+engine/tests/c/observer_tests

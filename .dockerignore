@@ -1,0 +1,11 @@
+# The Citus image only needs the fork's source and infra/citus.
+.git
+**/.git
+**/.venv
+**/__pycache__
+**/.pytest_cache
+runs
+sim
+assets
+engine/collector
+engine/tests

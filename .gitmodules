@@ -1,0 +1,4 @@
+[submodule "engine/citus"]
+	path = engine/citus
+	url = https://github.com/rnaji0/citus.git
+	branch = smart-sharding/v14.2.0
