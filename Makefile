@@ -13,6 +13,7 @@ ARGS     ?=
 
 .DEFAULT_GOAL := help
 .PHONY: help build up init down reset psql smoke status logs sim-setup sim-layout sim-run sim-report sim-scenarios sim-test sim-test-cluster
+.PHONY: engine-build engine-deploy engine-test-c engine-test-sql collector-test collector-run
 
 help: ## List targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -67,3 +68,24 @@ sim-test: ## Simulator unit tests
 
 sim-test-cluster: ## Simulator end-to-end tests against the running cluster (reloads tiny data)
 	cd sim && uv run pytest -q -m cluster
+
+engine-build: ## Incremental build of the Citus fork in a toolchain container (ccache)
+	docker build -q --target toolchain -t smart-sharding/citus-toolchain -f $(CITUS_DIR)/Dockerfile . >/dev/null
+	docker run --rm -v "$(CURDIR)/engine/citus:/src/citus" -v smart-sharding-ccache:/ccache -w /src/citus \
+	  smart-sharding/citus-toolchain bash -c 'test -f config.status || ./configure >/dev/null; make -j"$$(nproc)" -s'
+
+engine-deploy: engine-build build ## Rebuild the image from the fork and restart the cluster on it
+	$(COMPOSE) $(PROFILE_FLAGS) up -d --wait --force-recreate
+	$(CITUS_DIR)/scripts/init.sh
+
+engine-test-c: ## Unit tests for the observer's sketch and event ring (plain C)
+	$(MAKE) -C engine/tests/c test
+
+engine-test-sql: ## citus_observer integration tests against the running cluster
+	cd engine/tests/sql && uv run pytest -q -m cluster
+
+collector-test: ## engine-collector unit tests
+	cd engine/collector && uv run pytest -q -m "not cluster"
+
+collector-run: ## Poll engine telemetry into runs/engine-<time>.duckdb (ARGS="--duration 60")
+	cd engine/collector && uv run engine-collector run --out ../../runs/engine-$$(date +%Y%m%d-%H%M%S).duckdb $(ARGS)
